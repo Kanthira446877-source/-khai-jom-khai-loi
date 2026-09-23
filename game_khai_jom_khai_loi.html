@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>เกมไข่จม ไข่ลอย 🥚🌊</title>
+<style>
+*{box-sizing:border-box} body{margin:0;font-family:system-ui,-apple-system,"Noto Sans Thai",sans-serif;background:linear-gradient(#fff7ef,#e9f8ff);color:#3b2b2b}
+.wrap{max-width:900px;margin:auto;padding:18px}
+.card{background:#fff;border-radius:28px;padding:24px;box-shadow:0 8px 28px #0001;margin:14px 0}
+h1{font-size:clamp(30px,6vw,54px);margin:5px 0;color:#7b2f62;text-align:center}
+.sub{text-align:center;font-size:20px}
+.stats{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:12px}
+.badge{padding:10px 18px;border-radius:999px;background:#fff0b8;font-weight:700}
+.scene{display:flex;gap:25px;align-items:center;justify-content:center;flex-wrap:wrap}
+.glass{width:230px;height:290px;border:7px solid #78b8d8;border-top:0;border-radius:0 0 35px 35px;position:relative;background:linear-gradient(#fff8, #aee8ff);overflow:hidden}
+.water{position:absolute;bottom:0;left:0;right:0;height:72%;background:#8ed7f3aa;border-top:3px solid #62b6d8}
+.egg{position:absolute;left:50%;transform:translateX(-50%);font-size:62px;transition:all .7s;z-index:3}
+.egg.float{bottom:150px}.egg.sink{bottom:22px}.egg.mid{bottom:85px}
+.controls{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+button{border:0;border-radius:18px;padding:14px 20px;font-size:18px;font-weight:700;cursor:pointer;background:#ffd86b;box-shadow:0 4px 0 #d6aa3e}
+button:active{transform:translateY(3px);box-shadow:none}
+button.secondary{background:#bde9ff;box-shadow:0 4px 0 #76b5d2}
+button.good{background:#b9efbd;box-shadow:0 4px 0 #79bd7e}
+.question{font-size:25px;text-align:center;font-weight:700;margin:10px}
+.answers{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;max-width:650px;margin:auto}
+.answers button{background:#f5d9ef;box-shadow:0 4px 0 #c89dbd}
+#feedback{text-align:center;font-size:22px;font-weight:700;min-height:34px}
+.progress{height:16px;background:#eee;border-radius:20px;overflow:hidden}.bar{height:100%;width:0;background:#8dcc8e;transition:.4s}
+.small{text-align:center;color:#6d6060}.hidden{display:none}
+@media(max-width:600px){.answers{grid-template-columns:1fr}.card{padding:16px}.glass{width:190px;height:250px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="small">โครงงานไข่มหัศจรรย์: กิจกรรมไข่จม ไข่ลอย</div>
+    <h1>🥚 ไข่จม ไข่ลอย 🌊</h1>
+    <div class="sub">มาทดลองกันว่า “เกลือ” ทำให้ไข่เปลี่ยนจากจมเป็นลอยได้อย่างไร!</div>
+    <div class="stats"><span class="badge">⭐ คะแนน: <b id="score">0</b></span><span class="badge">ด่าน: <b id="round">1</b>/5</span></div>
+    <div class="progress"><div class="bar" id="bar"></div></div>
+  </div>
+
+  <div class="card">
+    <div class="scene">
+      <div>
+        <div class="small">แก้วทดลอง</div>
+        <div class="glass">
+          <div class="water"></div>
+          <div id="egg" class="egg sink">🥚</div>
+        </div>
+      </div>
+      <div style="max-width:420px">
+        <h2>🔬 ทดลองจริง</h2>
+        <p id="instruction">เติมเกลือทีละช้อน แล้วกด “คนเกลือ” เพื่อดูผล</p>
+        <p style="font-size:22px">🧂 เกลือที่เติม: <b id="salt">0</b> ช้อน</p>
+        <div class="controls">
+          <button onclick="addSalt()">🧂 เติมเกลือ</button>
+          <button class="secondary" onclick="stir()">🥄 คนเกลือ</button>
+          <button class="good" onclick="resetTest()">🔄 เริ่มทดลองใหม่</button>
+        </div>
+        <p id="result" style="font-size:22px;font-weight:700;text-align:center">ตอนนี้ไข่กำลัง “จม”</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="text-align:center">🧠 ตอบคำถามจากการทดลอง</h2>
+    <div class="question" id="question"></div>
+    <div class="answers" id="answers"></div>
+    <div id="feedback"></div>
+  </div>
+
+  <div class="card">
+    <h2>🏆 จบเกม</h2>
+    <p id="finish" class="small">ตอบคำถามให้ครบ 5 ข้อ แล้วดูคะแนนของเรา!</p>
+    <div class="controls"><button onclick="restart()">🎉 เล่นอีกครั้ง</button></div>
+  </div>
+</div>
+
+<script>
+const qs=[
+ {q:"เมื่อใส่เกลือลงในน้ำมากขึ้น น้ำจะเป็นอย่างไร?",a:["เค็มขึ้นและหนาแน่นขึ้น","กลายเป็นน้ำแข็ง","หายไป","ไม่มีการเปลี่ยนแปลง"],c:0},
+ {q:"ตอนเริ่มทดลอง ไข่อยู่ในน้ำสะอาดอย่างไร?",a:["ลอยสูง","จม","บินได้","หมุนอยู่ข้างบน"],c:1},
+ {q:"เมื่อเติมเกลือมากพอ ไข่จะมีแนวโน้มอย่างไร?",a:["ลอยขึ้น","จมลึกกว่าเดิมเสมอ","หายไป","เปลี่ยนเป็นลูกบอล"],c:0},
+ {q:"สิ่งใดช่วยให้ไข่ลอยในน้ำเกลือ?",a:["น้ำเกลือมีความหนาแน่นมากขึ้น","สีของแก้ว","ช้อน","อากาศในห้อง"],c:0},
+ {q:"ถ้าเติมเกลือน้อยลงจากเดิม ไข่มีแนวโน้มอย่างไร?",a:["ลอยสูงขึ้นเสมอ","มีโอกาสจมลง","กลายเป็นน้ำ","โตขึ้น"],c:1}
+];
+let salt=0,score=0,round=0,answered=false;
+const $=id=>document.getElementById(id);
+function updateEgg(){
+ let e=$("egg");
+ if(salt>=4){e.className="egg float";$("result").textContent="🎈 ไข่ลอยแล้ว! น้ำเกลือหนาแน่นขึ้น"}
+ else if(salt>=2){e.className="egg mid";$("result").textContent="🙂 ไข่เริ่มลอยตัว"}
+ else {e.className="egg sink";$("result").textContent="⬇️ ตอนนี้ไข่กำลัง “จม”"}
+ $("salt").textContent=salt;
+}
+function addSalt(){if(salt<6){salt++;updateEgg()}}
+function stir(){if(salt>0){$("result").textContent="🥄 คนแล้ว! สังเกตว่าไข่เปลี่ยนตำแหน่งอย่างไร"}else $("result").textContent="ลองเติมเกลือก่อนนะ 😊"}
+function resetTest(){salt=0;updateEgg()}
+function showQ(){
+ if(round>=5){$("question").textContent="🎉 เก่งมาก! ทำครบทุกข้อแล้ว";$("answers").innerHTML="";$("finish").innerHTML=`คะแนนสุดท้าย: <b>${score}/5</b> ⭐`;return}
+ const x=qs[round]; $("round").textContent=round+1;$("bar").style.width=(round/5*100)+"%";$("question").textContent=x.q;$("feedback").textContent="";answered=false;
+ $("answers").innerHTML=x.a.map((t,i)=>`<button onclick="answer(${i})">${t}</button>`).join("");
+}
+function answer(i){
+ if(answered)return; answered=true;
+ const x=qs[round];
+ if(i===x.c){score++;$("score").textContent=score;$("feedback").textContent="✅ ถูกต้อง! เก่งมาก +1 คะแนน";$("feedback").style.color="#26833a"}
+ else {$("feedback").textContent="💡 ยังไม่ใช่ ลองสังเกตการทดลองอีกครั้ง";$("feedback").style.color="#b85b38"}
+ setTimeout(()=>{round++;showQ()},900);
+}
+function restart(){salt=0;score=0;round=0;$("score").textContent=0;resetTest();showQ()}
+showQ();updateEgg();
+</script>
+</body>
+</html>
